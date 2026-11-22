@@ -1,0 +1,14 @@
+.yss-btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: auto !important;
+  min-width: 48px;
+  height: 100%;
+  padding: 0 8px !important;
+  vertical-align: top;
+  color: #fff;
+  font: 600 14px/1 "YouTube Sans", Roboto, Arial, sans-serif;
+  cursor: ns-resize;
+  user-select: none;
+}

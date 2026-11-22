@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Speed Scroll",
+  "version": "1.0",
+  "description": "Speed button on the YouTube player: scroll to change speed (0.25x-16x), click to toggle 1x.",
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["content.js"],
+      "css": ["style.css"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ]
+}
