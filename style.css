@@ -12,3 +12,23 @@
   cursor: ns-resize;
   user-select: none;
 }
+
+/* Fallback copy of YouTube's speed popup, only used if its own element is missing */
+.yss-bezel {
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 23;
+  padding: 10px 20px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 175%;
+  text-align: center;
+  pointer-events: none;
+}
+
+.yss-bezel[hidden] {
+  display: none;
+}

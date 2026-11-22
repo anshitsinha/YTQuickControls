@@ -10,7 +10,7 @@ It's a lightweight stand-in for the speed-scroll feature of bigger all-in-one Yo
 - **Scroll** over the button: up = faster, down = slower, in 0.25x steps
 - **Shift + scroll**: 1x steps, to get to high speeds quickly
 - **Click** the button: toggle between 1x and your last speed
-- **Shift + `>` / Shift + `<`**: change speed by 0.25x with the keyboard, past YouTube's usual 2x limit
+- **Shift + `>` / Shift + `<`**: change speed by 0.25x with the keyboard, past YouTube's usual 2x limit (shows the speed in YouTube's own popup while you switch)
 - **Remembers your speed** across videos, page reloads and ads
 - Works with YouTube's own speed menu too (the button follows whatever you pick there)
 

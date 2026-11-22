@@ -29,6 +29,35 @@
     if (b) b.textContent = fmt(v ? v.playbackRate : desired);
   }
 
+  // Show the speed in YouTube's own top-centre popup (the one its native < > shortcut uses).
+  // Falls back to a look-alike if YouTube ever renames those elements.
+  let bezelTimer, bezelHider;
+  function showBezel(text) {
+    const p = player();
+    if (!p) return;
+    const native = p.querySelector('.ytp-bezel-text');
+    if (native) {
+      bezelHider = native.closest('.ytp-bezel-text-hide') || (p.contains(bezelHider) ? bezelHider : null);
+    }
+    let el = native, hide;
+    if (native && bezelHider) {
+      bezelHider.classList.remove('ytp-bezel-text-hide');
+      hide = () => bezelHider.classList.add('ytp-bezel-text-hide');
+    } else {
+      el = p.querySelector('.yss-bezel');
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'yss-bezel';
+        p.appendChild(el);
+      }
+      el.hidden = false;
+      hide = () => { el.hidden = true; };
+    }
+    el.textContent = text;
+    clearTimeout(bezelTimer);
+    bezelTimer = setTimeout(hide, 1000);
+  }
+
   function setRate(r) {
     desired = Math.min(MAX, Math.max(MIN, Math.round(r * 100) / 100));
     if (desired !== 1) lastNonOne = desired;
@@ -89,6 +118,7 @@
     e.preventDefault();
     e.stopImmediatePropagation();
     setRate(desired + (e.key === '>' ? STEP : -STEP));
+    showBezel(fmt(desired));
   }, true);
 
   function ensure() {
