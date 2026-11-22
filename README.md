@@ -1,48 +1,61 @@
 # YouTube Speed Scroll
 
-A tiny Chrome/Brave/Edge extension that puts a speed button on the YouTube player. Scroll over it to change speed anywhere from **0.25x to 16x**.
+**Watch YouTube at any speed from 0.25x to 16x, with a speed button you control by scrolling.**
 
-It's a lightweight stand-in for the speed-scroll feature of bigger all-in-one YouTube extensions. About 100 lines of plain JavaScript, no permissions, no background script, no settings page, no tracking.
+This adds a small speed label to the YouTube player's control bar. Hover over it and scroll to go faster or slower, or use Shift + `<` / `>` on your keyboard. It goes well past YouTube's usual 2x limit.
 
-## Features
+It does one thing and stays out of the way. The whole extension is about 6 KB, asks for no permissions, and has no background process, settings page or tracking. Use it instead of a big all-in-one YouTube extension if speed control is the only feature you want.
 
-- **Speed button** on the player's control bar, next to the settings gear, showing the current speed (e.g. `2.5x`)
-- **Scroll** over the button: up = faster, down = slower, in 0.25x steps
-- **Shift + scroll**: 1x steps, to get to high speeds quickly
-- **Click** the button: toggle between 1x and your last speed
-- **Shift + `>` / Shift + `<`**: change speed by 0.25x with the keyboard, past YouTube's usual 2x limit (shows the speed in YouTube's own popup while you switch)
-- **Remembers your speed** across videos, page reloads and ads
-- Works with YouTube's own speed menu too (the button follows whatever you pick there)
+## Controls
 
-## Installation
+| Action | What it does |
+|---|---|
+| Scroll up / down over the speed label | Faster / slower, in 0.25x steps |
+| Shift + scroll over the label | Faster / slower, in 1x steps |
+| Click the label | Switch between 1x and your last speed |
+| Shift + `>` / Shift + `<` | Faster / slower, in 0.25x steps, shown in YouTube's own speed popup |
 
-1. Download this repository: **Code → Download ZIP** and unzip it, or
+- Speed range is **0.25x to 16x**.
+- **Your speed is remembered** for the next video, after a reload, and through ads.
+- If you pick a speed from YouTube's own settings menu, the label follows it.
+- Scrolling only updates the label. Nothing pops up over the video.
+
+## Install
+
+It isn't on the Chrome Web Store, so you load it yourself. This takes about a minute and works in Chrome, Brave, Edge and other Chromium browsers.
+
+1. **Download** this repository: click **Code → Download ZIP** above and unzip it. Or clone it:
    ```bash
    git clone https://github.com/anshitsinha/YTSpeedScrollExt.git
    ```
-2. Open your browser's extensions page:
-   - Chrome: `chrome://extensions`
-   - Brave: `brave://extensions`
-   - Edge: `edge://extensions`
-3. Turn on **Developer mode**
-4. Click **Load unpacked** and select the `YTSpeedScrollExt` folder
-5. Reload any open YouTube tabs
+2. **Open your extensions page:** `chrome://extensions`, `brave://extensions` or `edge://extensions`.
+3. Turn on **Developer mode** (switch in the top right).
+4. Click **Load unpacked** and select the unzipped `YTSpeedScrollExt` folder.
+5. **Reload** any YouTube tabs you have open.
 
-If another extension also controls playback speed, turn it off so the two don't conflict.
+Keep the folder where it is afterwards. The browser runs the extension from that folder, so deleting or moving it removes the extension.
 
-## Notes
+**To update:** download the new version over the old folder, then click the reload arrow on the extension's card in your extensions page.
 
-- Your browser may mute audio at very high speeds (roughly above 4x). That's a browser limit, not something an extension can change.
-- Works on normal videos and embedded YouTube players. Shorts are not supported.
+## Troubleshooting
+
+- **The speed label doesn't appear.** Reload the YouTube tab. If it still isn't there, YouTube may have changed its player layout. Please [open an issue](https://github.com/anshitsinha/YTSpeedScrollExt/issues).
+- **Speed keeps jumping back.** Another extension is probably also controlling speed. Turn its speed feature off, or turn that extension off.
+- **No sound at high speeds.** Browsers mute audio at very high playback speeds (roughly above 4x). Extensions can't change that.
+- **Shorts don't have the label.** Shorts aren't supported, only normal videos and embedded YouTube players.
+
+## Privacy
+
+The extension only runs on `youtube.com`. It makes no network requests and collects nothing. Your chosen speed is saved in your own browser. You can read all of it in [`content.js`](content.js).
 
 ## Files
 
-| File            | Description                                      |
-|-----------------|--------------------------------------------------|
-| `manifest.json` | Extension manifest (Manifest V3)                 |
-| `content.js`    | Adds the button, scroll/keyboard speed control   |
-| `style.css`     | Button styling                                   |
+| File | Purpose |
+|---|---|
+| `manifest.json` | Extension setup (Manifest V3), no permissions requested |
+| `content.js` | The speed label, scroll and keyboard controls, and speed memory |
+| `style.css` | Styling for the label |
 
 ## License
 
-MIT
+[MIT](LICENSE). Free to use, change and share.
