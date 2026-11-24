@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Speed & Volume Scroll",
-  "version": "1.1",
-  "description": "Scroll to control YouTube speed (0.25x-16x) on a player button, and volume by holding right-click and scrolling on the video.",
+  "name": "YT Quick Controls",
+  "version": "1.2",
+  "description": "Scroll to control YouTube speed (0.25x-16x) on a player button, volume by holding right-click and scrolling, and a one-click quality button.",
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*"],

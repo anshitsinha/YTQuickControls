@@ -1,16 +1,32 @@
-.yss-btn {
+/* Text buttons sized and coloured like YouTube's white icon buttons */
+.ytp-chrome-controls .ytp-right-controls .ytp-button.yss-btn,
+.ytp-chrome-controls .ytp-right-controls .ytp-button.yss-qbtn {
+  position: relative;
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
   width: auto !important;
   min-width: 48px;
   height: 100%;
-  padding: 0 8px !important;
+  padding: 0 12px !important;
   vertical-align: top;
-  color: #fff;
-  font: 600 14px/1 "YouTube Sans", Roboto, Arial, sans-serif;
-  cursor: ns-resize;
+  color: #fff !important;
+  opacity: 1 !important;
+  font: 600 14px/1 "YouTube Sans", Roboto, Arial, sans-serif !important;
+  /* Same shadow YouTube puts on its icons (filter: drop-shadow on their <svg>) */
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.8);
+  white-space: nowrap;
   user-select: none;
+}
+
+/* YouTube's hover pill is a fixed 48px circle; stretch it to our wider text buttons */
+.ytp-delhi-modern .ytp-chrome-controls .ytp-right-controls .ytp-button.yss-btn::before,
+.ytp-delhi-modern .ytp-chrome-controls .ytp-right-controls .ytp-button.yss-qbtn::before {
+  width: 100%;
+}
+
+.yss-btn {
+  cursor: ns-resize;
 }
 
 /* Speed popup container. Inner elements use YouTube's own .ytp-bezel-text*

@@ -7,27 +7,19 @@
   const STEP = 0.25;      // per scroll notch / per < > key press
   const BIG_STEP = 1;     // per notch while holding Shift
   const VOL_STEP = 5;     // volume % per notch while holding right mouse button
-  const KEY = 'ytSpeedScroll.rate';
 
-  let desired = 1;
-  try { desired = parseFloat(localStorage.getItem(KEY)) || 1; } catch {}
-  let lastNonOne = desired !== 1 ? desired : 2;
-  let enforceUntil = 0;   // window after a new video loads where YouTube's reset gets overridden
+  let lastNonOne = 2;     // what a click on the speed button toggles back to (memory only)
   let wheelAcc = 0;
   const hooked = new WeakSet();
 
   const fmt = r => +r.toFixed(2) + 'x';
   const player = () => document.getElementById('movie_player');
   const video = () => player()?.querySelector('video');
-
-  function save() {
-    try { localStorage.setItem(KEY, String(desired)); } catch {}
-  }
+  const rate = () => video()?.playbackRate || 1;
 
   function updateLabel() {
     const b = player()?.querySelector('.yss-btn');
-    const v = video();
-    if (b) b.textContent = fmt(v ? v.playbackRate : desired);
+    if (b) b.textContent = fmt(rate());
   }
 
   // Top-centre speed popup. Built from YouTube's own bezel classes so it picks up
@@ -63,40 +55,21 @@
   }
 
   function setRate(r) {
-    desired = Math.min(MAX, Math.max(MIN, Math.round(r * 100) / 100));
-    if (desired !== 1) lastNonOne = desired;
-    save();
     const v = video();
-    if (v && v.playbackRate !== desired) v.playbackRate = desired;
+    if (!v) return;
+    const next = Math.min(MAX, Math.max(MIN, Math.round(r * 100) / 100));
+    if (next !== 1) lastNonOne = next;
+    v.playbackRate = next;
     updateLabel();
-    showBezel(fmt(desired));
+    showBezel(fmt(next));
   }
 
-  function apply(v) {
-    if (v.playbackRate !== desired) v.playbackRate = desired;
-  }
-
+  // Only keeps the button label in sync (speed changed from YouTube's menu, new video, ...)
   function hookVideo(v) {
     if (hooked.has(v)) return;
     hooked.add(v);
-    v.addEventListener('loadstart', () => { enforceUntil = Date.now() + 3000; });
-    v.addEventListener('loadedmetadata', () => apply(v));
-    v.addEventListener('playing', () => { if (Date.now() < enforceUntil) apply(v); });
-    v.addEventListener('ratechange', () => {
-      if (v.playbackRate !== desired) {
-        if (Date.now() < enforceUntil) {
-          // YouTube resetting speed on a new video / ad: keep ours
-          v.playbackRate = desired;
-          return;
-        }
-        // Changed via YouTube's own speed menu: adopt it
-        desired = v.playbackRate;
-        if (desired !== 1) lastNonOne = desired;
-        save();
-      }
-      updateLabel();
-    });
-    apply(v);
+    v.addEventListener('ratechange', updateLabel);
+    updateLabel();
   }
 
   function onWheel(e) {
@@ -107,7 +80,7 @@
     if (Math.abs(wheelAcc) < 50) return;   // smooths trackpads
     const dir = wheelAcc < 0 ? 1 : -1;     // scroll up = faster
     wheelAcc = 0;
-    setRate(desired + dir * (e.shiftKey ? BIG_STEP : STEP));
+    setRate(rate() + dir * (e.shiftKey ? BIG_STEP : STEP));
   }
 
   // Hold right mouse button + scroll over the video: volume (scroll up = louder).
@@ -150,8 +123,53 @@
     if (!video() || isTyping(e)) return;
     e.preventDefault();
     e.stopImmediatePropagation();
-    setRate(desired + (e.key === '>' ? STEP : -STEP));
+    setRate(rate() + (e.key === '>' ? STEP : -STEP));
   }, true);
+
+  // Opens YouTube's own settings menu straight on the Quality submenu.
+  // The Quality row is found by its label, or (for non-English UIs) by its
+  // value looking like "1080p" / "Auto (720p)".
+  function openQuality() {
+    const p = player();
+    const gear = p?.querySelector('.ytp-settings-button');
+    if (!gear) return;
+    const menu = p.querySelector('.ytp-settings-menu');
+    const isOpen = menu && menu.style.display !== 'none' && menu.offsetParent !== null;
+    if (isOpen) { gear.click(); return; }   // second press closes the menu
+    gear.click();
+    let tries = 0;
+    (function pick() {
+      const items = p.querySelectorAll('.ytp-settings-menu .ytp-panel-menu .ytp-menuitem');
+      const q = [...items].find(i =>
+        /quality/i.test(i.querySelector('.ytp-menuitem-label')?.textContent || '') ||
+        /\d{3,4}p/.test(i.querySelector('.ytp-menuitem-content')?.textContent || ''));
+      if (q) q.click();
+      else if (++tries < 20) requestAnimationFrame(pick);
+    })();
+  }
+
+  // Label = current quality, reported by main.js (player API lives in the page world)
+  let qLabel = '';
+  document.addEventListener('yss-quality', e => {
+    qLabel = String(e.detail || '');
+    const b = player()?.querySelector('.yss-qbtn');
+    if (b) b.textContent = qLabel || 'Quality';
+  });
+
+  function ensureQualityBtn(controls) {
+    if (controls.querySelector('.yss-qbtn')) return;
+    const b = document.createElement('button');
+    b.className = 'ytp-button yss-qbtn';
+    b.textContent = qLabel || 'Quality';
+    b.title = 'Quality settings';
+    b.setAttribute('aria-label', 'Quality settings');
+    b.addEventListener('click', e => {
+      e.stopPropagation();
+      openQuality();
+    });
+    controls.prepend(b);
+    document.dispatchEvent(new CustomEvent('yss-quality-req'));
+  }
 
   function ensure() {
     const p = player();
@@ -159,7 +177,9 @@
     const v = p.querySelector('video');
     if (v) hookVideo(v);
     const controls = p.querySelector('.ytp-right-controls');
-    if (!controls || controls.querySelector('.yss-btn')) return;
+    if (!controls) return;
+    ensureQualityBtn(controls);
+    if (controls.querySelector('.yss-btn')) return;
 
     const b = document.createElement('button');
     b.className = 'ytp-button yss-btn';
@@ -168,7 +188,7 @@
     b.addEventListener('wheel', onWheel, { passive: false });
     b.addEventListener('click', e => {
       e.stopPropagation();
-      setRate(desired === 1 ? lastNonOne : 1);
+      setRate(rate() === 1 ? lastNonOne : 1);
     });
     controls.prepend(b);
     updateLabel();
