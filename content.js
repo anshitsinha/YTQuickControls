@@ -6,6 +6,7 @@
   const MIN = 0.25, MAX = 16;
   const STEP = 0.25;      // per scroll notch / per < > key press
   const BIG_STEP = 1;     // per notch while holding Shift
+  const VOL_STEP = 5;     // volume % per notch while holding right mouse button
   const KEY = 'ytSpeedScroll.rate';
 
   let desired = 1;
@@ -29,33 +30,36 @@
     if (b) b.textContent = fmt(v ? v.playbackRate : desired);
   }
 
-  // Show the speed in YouTube's own top-centre popup (the one its native < > shortcut uses).
-  // Falls back to a look-alike if YouTube ever renames those elements.
-  let bezelTimer, bezelHider;
+  // Top-centre speed popup. Built from YouTube's own bezel classes so it picks up
+  // the player's default look (and its fade animation); style.css only adds a
+  // fallback in case YouTube renames them. YouTube's own popup element is driven
+  // by its internal state, so we keep a separate copy instead of poking at it.
+  let bezelTimer;
   function showBezel(text) {
     const p = player();
     if (!p) return;
-    const native = p.querySelector('.ytp-bezel-text');
-    if (native) {
-      bezelHider = native.closest('.ytp-bezel-text-hide') || (p.contains(bezelHider) ? bezelHider : null);
+    let box = p.querySelector('.yss-bezel');
+    if (!box) {
+      box = document.createElement('div');
+      box.className = 'yss-bezel';
+      // No innerHTML: YouTube enforces Trusted Types
+      const w = document.createElement('div');
+      w.className = 'ytp-bezel-text-wrapper';
+      const t = document.createElement('div');
+      t.className = 'ytp-bezel-text';
+      w.appendChild(t);
+      box.appendChild(w);
+      p.appendChild(box);
     }
-    let el = native, hide;
-    if (native && bezelHider) {
-      bezelHider.classList.remove('ytp-bezel-text-hide');
-      hide = () => bezelHider.classList.add('ytp-bezel-text-hide');
-    } else {
-      el = p.querySelector('.yss-bezel');
-      if (!el) {
-        el = document.createElement('div');
-        el.className = 'yss-bezel';
-        p.appendChild(el);
-      }
-      el.hidden = false;
-      hide = () => { el.hidden = true; };
-    }
-    el.textContent = text;
+    const wrap = box.firstElementChild;
+    wrap.firstElementChild.textContent = text;
+    box.hidden = false;
+    // Restart YouTube's fade-out animation on every change
+    wrap.style.animation = 'none';
+    void wrap.offsetWidth;
+    wrap.style.animation = '';
     clearTimeout(bezelTimer);
-    bezelTimer = setTimeout(hide, 1000);
+    bezelTimer = setTimeout(() => { box.hidden = true; }, 1000);
   }
 
   function setRate(r) {
@@ -65,6 +69,7 @@
     const v = video();
     if (v && v.playbackRate !== desired) v.playbackRate = desired;
     updateLabel();
+    showBezel(fmt(desired));
   }
 
   function apply(v) {
@@ -105,6 +110,34 @@
     setRate(desired + dir * (e.shiftKey ? BIG_STEP : STEP));
   }
 
+  // Hold right mouse button + scroll over the video: volume (scroll up = louder).
+  // The volume itself is changed by main.js through YouTube's player API.
+  let volAcc = 0, suppressMenu = false;
+  window.addEventListener('wheel', e => {
+    if (!(e.buttons & 2)) return;
+    const p = player();
+    if (!p || !p.contains(e.target) || e.target.closest('.yss-btn')) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    suppressMenu = true;
+    volAcc += e.deltaY;
+    if (Math.abs(volAcc) < 50) return;     // smooths trackpads
+    const dir = volAcc < 0 ? 1 : -1;
+    volAcc = 0;
+    document.dispatchEvent(new CustomEvent('yss-volume', { detail: dir * VOL_STEP }));
+  }, { capture: true, passive: false });
+
+  document.addEventListener('yss-volume-done', e => showBezel(e.detail + '%'));
+
+  // Releasing the right button after a volume scroll shouldn't open the context menu
+  window.addEventListener('contextmenu', e => {
+    if (!suppressMenu) return;
+    suppressMenu = false;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  }, true);
+  window.addEventListener('mousedown', e => { if (e.button === 2) suppressMenu = false; }, true);
+
   function isTyping(e) {
     const t = e.composedPath()[0];
     return !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
@@ -118,7 +151,6 @@
     e.preventDefault();
     e.stopImmediatePropagation();
     setRate(desired + (e.key === '>' ? STEP : -STEP));
-    showBezel(fmt(desired));
   }, true);
 
   function ensure() {

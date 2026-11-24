@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "YouTube Speed Scroll",
-  "version": "1.0",
-  "description": "Speed button on the YouTube player: scroll to change speed (0.25x-16x), click to toggle 1x.",
+  "name": "YouTube Speed & Volume Scroll",
+  "version": "1.1",
+  "description": "Scroll to control YouTube speed (0.25x-16x) on a player button, and volume by holding right-click and scrolling on the video.",
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*"],
@@ -10,6 +10,13 @@
       "css": ["style.css"],
       "run_at": "document_idle",
       "all_frames": true
+    },
+    {
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["main.js"],
+      "run_at": "document_idle",
+      "all_frames": true,
+      "world": "MAIN"
     }
   ]
 }

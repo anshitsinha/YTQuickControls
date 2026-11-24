@@ -13,22 +13,33 @@
   user-select: none;
 }
 
-/* Fallback copy of YouTube's speed popup, only used if its own element is missing */
+/* Speed popup container. Inner elements use YouTube's own .ytp-bezel-text*
+   classes, so the popup takes the player's default look and fade. */
 .yss-bezel {
   position: absolute;
-  top: 10%;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 23;
-  padding: 10px 20px;
-  border-radius: 3px;
-  background: rgba(0, 0, 0, 0.5);
-  color: #fff;
-  font-size: 175%;
-  text-align: center;
+  inset: 0;
+  z-index: 60;
   pointer-events: none;
 }
 
 .yss-bezel[hidden] {
   display: none;
+}
+
+/* Fallback look, zero specificity so YouTube's own styles always win */
+:where(.yss-bezel) :where(.ytp-bezel-text-wrapper) {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10%;
+  text-align: center;
+}
+
+:where(.yss-bezel) :where(.ytp-bezel-text) {
+  display: inline-block;
+  padding: 10px 20px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-size: 175%;
 }
